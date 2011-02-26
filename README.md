@@ -11,7 +11,7 @@ neste also includes many useful built-in formatters.
 
 ###With goinstall
 
-	goinstall bitbucket.org/fzzbt/neste
+	goinstall github.com/fzzbt/neste
 
 ##Documentation and examples
 
@@ -19,7 +19,7 @@ For documentation, after installation, please run
 
 	godoc -http=:8080
 
-and point your browser to `http://localhost:8080/pkg/bitbucket.org/neste`.
+and point your browser to `http://localhost:8080/pkg/github.com/neste`.
 
 Please see the examples folder for examples.
 
