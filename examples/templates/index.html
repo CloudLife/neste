@@ -1,0 +1,16 @@
+{.section FileRows}
+<table>
+	<tr>
+		<th>Name</th>
+		<th>Size</th>
+	</tr>
+    {.repeated section FileRows}
+    <tr>
+		<td>{Name}</th>
+		<td>{Size}</th>
+	</tr>
+    {.end}
+</table>
+{.or}
+<p>There are no files.</p>
+{.end}
