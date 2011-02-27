@@ -1,10 +1,13 @@
+// This example generates a html index of files residing in a directory (idir) similar to eg. apache
+// and presents it to the user through http server (go to http://localhost:8080 to see results)
+
 package main
 
 import (
 	"http"
 	"log"
 	"os"
-	"bitbucket.org/fzzbt/neste"
+	"github.com/fzzbt/neste"
 	"path"
 )
 
@@ -15,16 +18,19 @@ const (
 
 var tm *neste.Manager = neste.New(templateDir, nil)
 
+// this represents an info row for one file in the directory
 type fileInfoRow struct {
 	Name string // File name
 	Size int64  // File size in bytes
 }
 
+// data struct for base.html
 type dBase struct {
 	Title   string
 	Content string
 }
 
+// data struct for index.html
 type dIndex struct {
 	FileRows []fileInfoRow
 }
@@ -69,7 +75,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	for i, v := range dirnames {
 		fileRows[i].Name = v
 
-		fi, _ := os.Lstat(path.Join(idir, v))
+		fi, _ := os.Lstat(path.Join(idir, v)) // get file size in bytes
 		fileRows[i].Size = fi.Size
 	}
 
@@ -79,10 +85,11 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	dIndex := &dIndex{
 		FileRows: fileRows}
 
-	renderIndex(w, dBase, dIndex)
+	executeIndex(w, dBase, dIndex)
 }
 
-func renderIndex(w http.ResponseWriter, dBase *dBase, dIndex *dIndex) {
+// Executes template index.html and its parent template base.html with the given data structures.
+func executeIndex(w http.ResponseWriter, dBase *dBase, dIndex *dIndex) {
 	dBase.Content, _ = tm.GetFile("index.html").Render(dIndex)
 	tm.GetFile("base.html").Execute(w, dBase)
 }
