@@ -19,7 +19,7 @@ For documentation, after installation, please run
 
 	godoc -http=:8080
 
-and point your browser to `http://localhost:8080/pkg/github.com/neste`.
+and point your browser to `http://localhost:8080/pkg/github.com/fzzbt/neste`.
 
 Please see the examples folder for examples.
 
