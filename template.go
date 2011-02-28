@@ -6,7 +6,6 @@ import (
 	"template"
 	"os"
 	"bytes"
-	"log"
 	"io"
 )
 
@@ -16,12 +15,11 @@ type Template struct {
 }
 
 // Execute applies a parsed template to the specified data object, generating output to wr.
-// If any errors occur, err will be non-nil. 
+// If any errors occur, err will be non-nil.
 func (t *Template) Execute(wr io.Writer, data interface{}) (err os.Error) {
 	tt := t.cache
 	err = tt.Execute(wr, data)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 
@@ -30,12 +28,12 @@ func (t *Template) Execute(wr io.Writer, data interface{}) (err os.Error) {
 
 // Render applies a parsed template to the specified data object and 
 // returns the generated output as a string.
-// If any errors occur, err will be non-nil. 
+// If any errors occur, output will be empty string "" and err will be non-nil. 
 func (t *Template) Render(data interface{}) (s string, err os.Error) {
 	buf := new(bytes.Buffer)
 	err = t.Execute(buf, data)
 	if err != nil {
-		log.Println(err)
+		return "", err
 	}
 	
 	s = string(buf.Bytes())

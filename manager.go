@@ -11,7 +11,6 @@ package neste
 import (
 	"template"
 	"os"
-	"log"
 	"io/ioutil"
 	"path"
 )
@@ -149,12 +148,11 @@ func (tm *Manager) add(s string, id string, mustParse bool) (t *Template, err os
 	if mustParse {
 		err := tt.Parse(s)
 		if err != nil {
-			log.Panic(err)
+			panic(err)
 		}
 	} else {
 		err := tt.Parse(s)
 		if err != nil {
-			log.Println(err)
 			return nil, err
 		}
 	}
@@ -170,7 +168,6 @@ func (tm *Manager) add(s string, id string, mustParse bool) (t *Template, err os
 func readFileNl(path string) (in []byte, err os.Error) {
 	in, err = ioutil.ReadFile(path)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 
@@ -197,25 +194,23 @@ func (tm *Manager) addFile(filename string, ignoreEndingNl bool, mustParse bool)
 
 			bstr, err = readFileNl(path)
 			if err != nil {
-				log.Panic(err)
+				panic(err)
 			}
 
 			err := tt.Parse(string(bstr))
 			if err != nil {
-				log.Panic(err)
+				panic(err)
 			}
 		} else {
 			var bstr []byte
 
 			bstr, err = readFileNl(path)
 			if err != nil {
-				log.Println(err)
 				return nil, err
 			}
 
 			err := tt.Parse(string(bstr))
 			if err != nil {
-				log.Println(err)
 				return nil, err
 			}
 		}
@@ -223,12 +218,11 @@ func (tm *Manager) addFile(filename string, ignoreEndingNl bool, mustParse bool)
 		if mustParse {
 			err := tt.ParseFile(path)
 			if err != nil {
-				log.Panic(err)
+				panic(err)
 			}
 		} else {
 			err := tt.ParseFile(path)
 			if err != nil {
-				log.Println(err)
 				return nil, err
 			}
 		}
