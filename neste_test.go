@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"os"
 	"template"
-	"path"
 )
 
 // Hook up gocheck into the gotest runner.
@@ -37,8 +36,7 @@ func (s *S) TestAdd(c *C) {
 	t, err := tm.AddFile(indexName)
 	c.Assert(err, IsNil)
 	c.Assert(len(tm.tFiles), Equals, 1)
-	indexPath := path.Join(baseDir, indexName)
-	c.Check(tm.tFiles[indexPath].cache, NotNil)
+	c.Check(tm.tFiles[indexName].cache, NotNil)
 	c.Check(tm.GetFile(indexName), Equals, t)
 }
 
@@ -120,10 +118,10 @@ Render<hr/>neste template engine
 func (s *S) TestFormatters(c *C) {
 	tstr :=
 `
-{unesc1 unesc2 unesc3|html}
-{unslashed|addSlashes}
-{uncapped|capFirst}
-{uncapped2|capFirst}
+{{unesc1 unesc2 unesc3|html}}
+{{unslashed|addSlashes}}
+{{uncapped|capFirst}}
+{{uncapped2|capFirst}}
 `
 	var data = map[string]string{
 		"unesc1":    "<hack>",

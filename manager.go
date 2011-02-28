@@ -86,8 +86,7 @@ func (tm *Manager) Get(s string) *Template {
 
 // Returns a template with the given filename or nil if it doesn't exist.
 func (tm *Manager) GetFile(filename string) *Template {
-	path := path.Join(tm.baseDir, filename)
-	return tm.tFiles[path]
+	return tm.tFiles[filename]
 }
 
 // MustAdd is like Add, but panics, if template can't be parsed. 
@@ -125,9 +124,8 @@ func (tm *Manager) Remove(s string) bool {
 // It's safe to remove a non-existing template.
 // Remove returns true if a template was removed, otherwise false.
 func (tm *Manager) RemoveFile(filename string) bool {
-	path := path.Join(tm.baseDir, filename)
-	_, present := tm.tFiles[path]
-	tm.tFiles[path] = nil, false
+	_, present := tm.tFiles[filename]
+	tm.tFiles[filename] = nil, false
 	return present
 }
 
@@ -239,7 +237,7 @@ func (tm *Manager) addFile(filename string, ignoreEndingNl bool, mustParse bool)
 	t = &Template{cache: tt}
 
 	// Add template to the manager.
-	tm.tFiles[path] = t
+	tm.tFiles[filename] = t
 
 	return t, nil
 }
