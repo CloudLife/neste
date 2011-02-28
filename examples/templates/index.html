@@ -1,16 +1,16 @@
-{.section FileRows}
+{{.section FileRows}}
 <table>
 	<tr>
 		<th>Name</th>
 		<th>Size</th>
 	</tr>
-    {.repeated section FileRows}
+    {{.repeated section FileRows}}
     <tr>
-		<td>{Name}</th>
-		<td>{Size}</th>
+		<td>{{Name}}</th>
+		<td>{{Size}}</th>
 	</tr>
-    {.end}
+    {{.end}}
 </table>
-{.or}
+{{.or}}
 <p>There are no files.</p>
-{.end}
+{{.end}}

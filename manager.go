@@ -43,8 +43,8 @@ func New(baseDir string, fmap template.FormatterMap) *Manager {
 		tStrings: make(map[string]*Template),
 		tFiles:   make(map[string]*Template),
 		fmap:     fmap,
-		ldelim:   "{",
-		rdelim:   "}"}
+		ldelim:   "{{",
+		rdelim:   "}}"}
 }
 
 // Add adds a given template string s to the template manager with the identifier id.

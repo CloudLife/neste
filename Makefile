@@ -1,6 +1,6 @@
 include $(GOROOT)/src/Make.inc
 
-TARG=bitbucket.org/fzzbt/neste
+TARG=github.com/fzzbt/neste
 GOFILES=\
 	manager.go\
 	template.go\
