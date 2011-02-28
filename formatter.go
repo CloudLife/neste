@@ -12,9 +12,9 @@ import (
 )
 
 var builtins = template.FormatterMap{
-	"e": template.HTMLFormatter, // Just a shorthand for the "html" escaping formatter
+	"e":          template.HTMLFormatter, // Just a shorthand for the "html" escaping formatter
 	"addSlashes": AddSlashesFormatter,
-	"capFirst": CapFirstFormatter}
+	"capFirst":   CapFirstFormatter}
 
 /*
 Adds slashes before quotes. Useful for escaping strings in CSV, for example.
@@ -48,7 +48,7 @@ If value is "neste", the output will be "Neste".
 */
 func CapFirstFormatter(w io.Writer, formatter string, data ...interface{}) {
 	b := getBytes(data...)
-	
+
 	if len(b) > 0 {
 		rune, size := utf8.DecodeRune(b)
 		rune = unicode.ToUpper(rune)

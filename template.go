@@ -35,7 +35,7 @@ func (t *Template) Render(data interface{}) (s string, err os.Error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	s = string(buf.Bytes())
 	return s, nil
 }
