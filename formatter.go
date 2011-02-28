@@ -12,6 +12,7 @@ import (
 )
 
 var builtins = template.FormatterMap{
+	"e": template.HTMLFormatter, // Just a shorthand for the "html" escaping formatter
 	"addSlashes": AddSlashesFormatter,
 	"capFirst": CapFirstFormatter}
 
