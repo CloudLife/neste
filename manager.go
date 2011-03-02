@@ -11,18 +11,18 @@ package neste
 import (
 	"template"
 	"os"
-	"io/ioutil"
 	"path"
 )
 
 // Manager is a type that represents a template manager.
 type Manager struct {
-	fmap     template.FormatterMap
-	baseDir  string
-	tStrings map[string]*Template // Templates for strings
-	tFiles   map[string]*Template // Templates for files
-	ldelim   string
-	rdelim   string
+	fmap      template.FormatterMap
+	baseDir   string
+	tStrings  map[string]*Template // Templates for strings
+	tFiles    map[string]*Template // Templates for files
+	ldelim    string
+	rdelim    string
+	reloading bool
 }
 
 // Returns a new template manager with base directory baseDir for template files.
@@ -38,73 +38,56 @@ func New(baseDir string, fmap template.FormatterMap) *Manager {
 	}
 
 	return &Manager{
-		baseDir:  baseDir,
-		tStrings: make(map[string]*Template),
-		tFiles:   make(map[string]*Template),
-		fmap:     fmap,
-		ldelim:   "{{",
-		rdelim:   "}}"}
+		baseDir:   baseDir,
+		tStrings:  make(map[string]*Template),
+		tFiles:    make(map[string]*Template),
+		fmap:      fmap,
+		ldelim:    "{{",
+		rdelim:    "}}",
+		reloading: false}
 }
 
 // Add adds a given template string s to the template manager with the identifier id.
 // If any errors occur, returned error will be non-nil. 
-func (tm *Manager) Add(s string, id string) (*Template, os.Error) {
-	return tm.add(s, id, false)
+func (m *Manager) Add(s string, id string) (*Template, os.Error) {
+	return m.add(s, id, false)
 }
 
 // AddFile adds a given template file to the template manager.
-// This method ignores ending newline character in the input file, unlike AddFilenl,
-// to prevent accumulating extra newlines when nesting is performed. 
 // If any errors occur, returned error will be non-nil. 
-func (tm *Manager) AddFile(filename string) (*Template, os.Error) {
-	return tm.addFile(filename, true, false)
-}
-
-// AddFile adds a given template file to the template manager.
-// This method does not ignore ending newline character in the input file, unlike AddFile does
-// to prevent accumulating extra newlines when nesting is performed. 
-// If any errors occur, returned error will be non-nil. 
-func (tm *Manager) AddFilenl(filename string) (*Template, os.Error) {
-	return tm.addFile(filename, false, false)
+func (m *Manager) AddFile(filename string) (*Template, os.Error) {
+	return m.addFile(filename, false)
 }
 
 // Removes all templates from the template manager.
 // Useful for clearing out cached templates.
 // Clear returns true if one or more templates were removed, otherwise false.
-func (tm *Manager) Clear() bool {
-	tlen := len(tm.tStrings) + len(tm.tFiles)
-	tm.tStrings = make(map[string]*Template)
-	tm.tFiles = make(map[string]*Template)
+func (m *Manager) Clear() bool {
+	tlen := len(m.tStrings) + len(m.tFiles)
+	m.tStrings = make(map[string]*Template)
+	m.tFiles = make(map[string]*Template)
 	return tlen > 0
 }
 
 // Returns a template with the given identifier or nil if it doesn't exist.
-func (tm *Manager) Get(s string) *Template {
-	return tm.tStrings[s]
+func (m *Manager) Get(s string) *Template {
+	return m.tStrings[s]
 }
 
 // Returns a template with the given filename or nil if it doesn't exist.
-func (tm *Manager) GetFile(filename string) *Template {
-	return tm.tFiles[filename]
+func (m *Manager) GetFile(filename string) *Template {
+	return m.tFiles[filename]
 }
 
 // MustAdd is like Add, but panics, if template can't be parsed. 
-func (tm *Manager) MustAdd(s string, id string) *Template {
-	t, _ := tm.add(s, id, true)
+func (m *Manager) MustAdd(s string, id string) *Template {
+	t, _ := m.add(s, id, true)
 	return t
 }
-
 
 // MustAddFile is like AddFile, but panics, if template can't be parsed. 
-func (tm *Manager) MustAddFile(filename string) *Template {
-	t, _ := tm.addFile(filename, true, true)
-	return t
-}
-
-
-// MustAddFilenl is like AddFilenl, but panics, if template can't be parsed. 
-func (tm *Manager) MustAddFilenl(filename string) *Template {
-	t, _ := tm.addFile(filename, false, true)
+func (m *Manager) MustAddFile(filename string) *Template {
+	t, _ := m.addFile(filename, true)
 	return t
 }
 
@@ -112,9 +95,9 @@ func (tm *Manager) MustAddFilenl(filename string) *Template {
 // Useful for clearing out cached templates.
 // It's safe to remove a non-existing template.
 // Remove returns true if a template was removed, otherwise false.
-func (tm *Manager) Remove(s string) bool {
-	_, present := tm.tStrings[s]
-	tm.tStrings[s] = nil, false
+func (m *Manager) Remove(s string) bool {
+	_, present := m.tStrings[s]
+	m.tStrings[s] = nil, false
 	return present
 }
 
@@ -122,16 +105,24 @@ func (tm *Manager) Remove(s string) bool {
 // Useful for clearing out cached templates.
 // It's safe to remove a non-existing template.
 // Remove returns true if a template was removed, otherwise false.
-func (tm *Manager) RemoveFile(filename string) bool {
-	_, present := tm.tFiles[filename]
-	tm.tFiles[filename] = nil, false
+func (m *Manager) RemoveFile(filename string) bool {
+	_, present := m.tFiles[filename]
+	m.tFiles[filename] = nil, false
 	return present
 }
 
+// SetReloading sets the template file reloading mode.
+// When reloading mode is enabled, calls to GetFile method will trigger reparsing of the given template file
+// if its modified time has changed.
+// Reloading is disabled (false) by default.
+func (m *Manager) SetReloading(reloading bool) {
+	m.reloading = reloading
+}
+
 // SetDelims sets the left and right delimiters for operations in the template for template parsing.
-func (tm *Manager) SetDelims(left, right string) {
-	tm.ldelim = left
-	tm.rdelim = right
+func (m *Manager) SetDelims(left, right string) {
+	m.ldelim = left
+	m.rdelim = right
 }
 
 
@@ -140,9 +131,9 @@ func (tm *Manager) SetDelims(left, right string) {
 // Add adds a given template string to the template manager.
 // This method should not be called directly, but through Add or MustAdd.
 // If any errors occur, err will be non-nil. 
-func (tm *Manager) add(s string, id string, mustParse bool) (t *Template, err os.Error) {
-	tt := template.New(tm.fmap)
-	tt.SetDelims(tm.ldelim, tm.rdelim)
+func (m *Manager) add(s string, id string, mustParse bool) (t *Template, err os.Error) {
+	tt := template.New(m.fmap)
+	tt.SetDelims(m.ldelim, m.rdelim)
 
 	// Parse the template.
 	if mustParse {
@@ -157,82 +148,53 @@ func (tm *Manager) add(s string, id string, mustParse bool) (t *Template, err os
 		}
 	}
 
-	t = &Template{cache: tt}
+	t = &Template{
+		m:     m,
+		cache: tt}
 
 	// Add template to the manager.
-	tm.tStrings[id] = t
+	m.tStrings[id] = t
 	return t, nil
-}
-
-// readFileNl is same as ioutil.ReadFile except it ignores ending newline character.
-func readFileNl(path string) (in []byte, err os.Error) {
-	in, err = ioutil.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-
-	// Remove ending newline character only if one exists.
-	if len(in) > 0 && in[len(in)-1] == '\n' {
-		in = in[:len(in)-1]
-	}
-	return in, nil
 }
 
 // AddFile adds a given template file to the template manager.
-// This method should not be called directly, but through AddFile, AddFilenl, MustAddFile or MustAddFilenl.
-// ignoreEndingNl determines whether ending newline character is ignored in the input file.
+// This method should not be called directly, but through AddFile, MustAddFile.
 // If any errors occur, err will be non-nil. 
-func (tm *Manager) addFile(filename string, ignoreEndingNl bool, mustParse bool) (t *Template, err os.Error) {
-	tt := template.New(tm.fmap)
-	tt.SetDelims(tm.ldelim, tm.rdelim)
+func (m *Manager) addFile(filename string, mustParse bool) (t *Template, err os.Error) {
+	tt := template.New(m.fmap)
+	tt.SetDelims(m.ldelim, m.rdelim)
 
 	// Parse template file.
-	path := path.Join(tm.baseDir, filename)
-	if ignoreEndingNl {
-		if mustParse {
-			var bstr []byte
-
-			bstr, err = readFileNl(path)
-			if err != nil {
-				panic(err)
-			}
-
-			err := tt.Parse(string(bstr))
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			var bstr []byte
-
-			bstr, err = readFileNl(path)
-			if err != nil {
-				return nil, err
-			}
-
-			err := tt.Parse(string(bstr))
-			if err != nil {
-				return nil, err
-			}
+	path := path.Join(m.baseDir, filename)
+	if mustParse {
+		err := tt.ParseFile(path)
+		if err != nil {
+			panic(err)
 		}
 	} else {
-		if mustParse {
-			err := tt.ParseFile(path)
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			err := tt.ParseFile(path)
-			if err != nil {
-				return nil, err
-			}
+		err := tt.ParseFile(path)
+		if err != nil {
+			return nil, err
 		}
 	}
 
-	t = &Template{cache: tt}
+	t = &Template{
+		m:     m,
+		cache: tt,
+		fi: &templateFileInfo{
+			filename:  filename,
+			mtime:     getMtime(path),
+			mustParse: mustParse}}
 
 	// Add template to the manager.
-	tm.tFiles[filename] = t
+	m.tFiles[filename] = t
 
 	return t, nil
+}
+
+// getMtime returns modified time of the given file.
+func getMtime(path string) int64 {
+	fi, _ := os.Lstat(path)
+	return fi.Mtime_ns
 }
 

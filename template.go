@@ -7,16 +7,43 @@ import (
 	"os"
 	"bytes"
 	"io"
+	"path"
 )
 
-// Template is a type for holding a *template.Template.
+type templateFileInfo struct {
+	filename  string
+	mtime     int64 // Modified time
+	mustParse bool
+}
+
+// Template is a type for holding a *template.Template and other information.
 type Template struct {
+	m     *Manager
 	cache *template.Template
+	fi    *templateFileInfo // Used only for template files, nil for template strings.
 }
 
 // Execute applies a parsed template to the specified data object, generating output to wr.
+// If the template is a template file and the template's template manager has reloading mode enabled, 
+// then this method will attempt to reparse the template file if its modified time has changed.
 // If any errors occur, err will be non-nil.
 func (t *Template) Execute(wr io.Writer, data interface{}) (err os.Error) {
+	if t.fi != nil && t.m.reloading {
+		filename := t.fi.filename
+		path := path.Join(t.m.baseDir, filename)
+		oldMtime := t.fi.mtime
+		curMtime := getMtime(path)
+
+		if curMtime > oldMtime {
+			// Template has changed.
+			// Reparse the template file.
+			t, err = t.m.addFile(filename, t.m.tFiles[filename].fi.mustParse)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	tt := t.cache
 	err = tt.Execute(wr, data)
 	if err != nil {

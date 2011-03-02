@@ -6,6 +6,9 @@ import (
 	"bytes"
 	"os"
 	"template"
+	"io/ioutil"
+	"path"
+	"time"
 )
 
 // Hook up gocheck into the gotest runner.
@@ -13,9 +16,8 @@ func Test(t *testing.T) { TestingT(t) }
 
 type S struct{}
 
-func init() {
-	Suite(&S{})
-}
+var _ = Suite(&S{})
+
 
 const (
 	// Template base dir
@@ -83,7 +85,7 @@ Execute<hr/>neste template engine
 `
 
 	tm := New(baseDir, nil)
-	t, _ := tm.AddFilenl(indexName)
+	t, _ := tm.AddFile(indexName)
 
 	buf := new(bytes.Buffer)
 	err := t.Execute(buf, data)
@@ -108,7 +110,7 @@ Render<hr/>neste template engine
 `
 
 	tm := New(baseDir, nil)
-	t, _ := tm.AddFilenl(indexName)
+	t, _ := tm.AddFile(indexName)
 
 	output, err := t.Render(data)
 	c.Assert(err, IsNil)
@@ -151,9 +153,11 @@ func (s *S) TestNesting(c *C) {
 	expected :=
 `<!DOCTYPE HTML>
 <html>
-<head><title>Page Title</title></head>
+<head><title>Page Title</title>
+</head>
 <body>
-<div id="brand">neste template engine</div><div id="content">
+<div id="brand">neste template engine</div>
+<div id="content">
 <h1>Page Title</h1>
 <p>Example page to demonstrate nested templates.</p>
 <ul>
@@ -161,9 +165,11 @@ func (s *S) TestNesting(c *C) {
 <li>Listing</li>
 <li>Area</li>
 </ul>
-</div><hr/><div id="footer">
+</div>
+<hr/><div id="footer">
 Posted : 25th July 2010 12:15
 </div>
+
 </body>
 </html>
 `
@@ -179,7 +185,7 @@ Posted : 25th July 2010 12:15
 
 	tm := New(baseDir, nil)
 
-	tIndex := tm.MustAddFilenl(indexName)
+	tIndex := tm.MustAddFile(indexName)
 	tHead := tm.MustAddFile(headName)
 	tBrand := tm.MustAddFile(brandName)
 	tContent := tm.MustAddFile(contentName)
@@ -204,5 +210,39 @@ Posted : 25th July 2010 12:15
 	output, err := tIndex.Render(indexData)
 	c.Assert(err, IsNil)
 	c.Assert(output, Equals, expected)
+}
+
+func (s *S) TestReloading(c *C) {
+	rlName := "reloading.neste"
+	rlPath := path.Join(baseDir, rlName)
+	data := "foo"
+	st := []byte("starting template: {{@}}\n")
+	mt := []byte("modified template: {{@}}\n")
+	sExpected := "starting template: foo\n"
+	mExpected := "modified template: foo\n"
+
+	ioutil.WriteFile(rlPath, st, 0644)
+	tm := New(baseDir, nil)
+	c.Assert(tm.reloading, Equals, false)
+	t, _ := tm.AddFile(rlName)
+
+	// Attempt to force mtime to change.
+	err := os.Chtimes(rlPath, time.Nanoseconds(), time.Nanoseconds())
+	c.Assert(err, IsNil)
+
+	output, err := t.Render(data)
+	c.Assert(err, IsNil)
+	c.Assert(output, Equals, sExpected)
+
+	ioutil.WriteFile(rlPath, mt, 0644)
+	tm.SetReloading(true)
+
+	// Attempt to force mtime to change.
+	err = os.Chtimes(rlPath, time.Nanoseconds(), time.Nanoseconds())
+	c.Assert(err, IsNil)
+
+	output, err = t.Render(data)
+	c.Assert(err, IsNil)
+	c.Assert(output, Equals, mExpected)
 }
 
