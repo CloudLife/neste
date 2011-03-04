@@ -42,8 +42,8 @@ func New(baseDir string, fmap template.FormatterMap) *Manager {
 		tStrings:  make(map[string]*Template),
 		tFiles:    make(map[string]*Template),
 		fmap:      fmap,
-		ldelim:    "{{",
-		rdelim:    "}}",
+		ldelim:    "{",
+		rdelim:    "}",
 		reloading: false}
 }
 

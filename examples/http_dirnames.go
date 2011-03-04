@@ -95,7 +95,10 @@ func executeIndex(w http.ResponseWriter, dBase *dBase, dIndex *dIndex) {
 }
 
 func initTemplates() {
-	_, err := tm.AddFilenl("base.html")
+	tm.SetDelims("{{", "}}")
+	tm.SetReloading(true)
+
+	_, err := tm.AddFile("base.html")
 	if err != nil {
 		panic(err)
 	}

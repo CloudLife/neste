@@ -120,10 +120,10 @@ Render<hr/>neste template engine
 func (s *S) TestFormatters(c *C) {
 	tstr :=
 `
-{{unesc1 unesc2 unesc3|html}}
-{{unslashed|addSlashes}}
-{{uncapped|capFirst}}
-{{uncapped2|capFirst}}
+{unesc1 unesc2 unesc3|html}
+{unslashed|addSlashes}
+{uncapped|capFirst}
+{uncapped2|capFirst}
 `
 	var data = map[string]string{
 		"unesc1":    "<hack>",
@@ -216,8 +216,8 @@ func (s *S) TestReloading(c *C) {
 	rlName := "reloading.neste"
 	rlPath := path.Join(baseDir, rlName)
 	data := "foo"
-	st := []byte("starting template: {{@}}\n")
-	mt := []byte("modified template: {{@}}\n")
+	st := []byte("starting template: {@}\n")
+	mt := []byte("modified template: {@}\n")
 	sExpected := "starting template: foo\n"
 	mExpected := "modified template: foo\n"
 
