@@ -212,6 +212,37 @@ Posted : 25th July 2010 12:15
 	c.Assert(output, Equals, expected)
 }
 
+func (s *S) TestReload(c *C) {
+	rlName := "reloading.neste"
+	rlPath := path.Join(baseDir, rlName)
+	data := "foo"
+	st := []byte("starting template: {@}\n")
+	mt := []byte("modified template: {@}\n")
+	sExpected := "starting template: foo\n"
+	mExpected := "modified template: foo\n"
+
+	ioutil.WriteFile(rlPath, st, 0644)
+	tm := New(baseDir, nil)
+	t := tm.MustAddFile(rlName)
+
+	output, err := t.Render(data)
+	c.Assert(err, IsNil)
+	c.Assert(output, Equals, sExpected)
+
+	// Write changes and reload
+	ioutil.WriteFile(rlPath, mt, 0644)
+	// Attempt to force mtime to change.
+	err = os.Chtimes(rlPath, time.Nanoseconds(), time.Nanoseconds())
+	c.Assert(err, IsNil)
+	
+	err = t.Reload()
+	c.Assert(err, IsNil)
+
+	output, err = t.Render(data)
+	c.Assert(err, IsNil)
+	c.Assert(output, Equals, mExpected)
+}
+
 func (s *S) TestReloading(c *C) {
 	rlName := "reloading.neste"
 	rlPath := path.Join(baseDir, rlName)
@@ -224,16 +255,13 @@ func (s *S) TestReloading(c *C) {
 	ioutil.WriteFile(rlPath, st, 0644)
 	tm := New(baseDir, nil)
 	c.Assert(tm.reloading, Equals, false)
-	t, _ := tm.AddFile(rlName)
-
-	// Attempt to force mtime to change.
-	err := os.Chtimes(rlPath, time.Nanoseconds(), time.Nanoseconds())
-	c.Assert(err, IsNil)
+	t := tm.MustAddFile(rlName)
 
 	output, err := t.Render(data)
 	c.Assert(err, IsNil)
 	c.Assert(output, Equals, sExpected)
 
+	// Write changes
 	ioutil.WriteFile(rlPath, mt, 0644)
 	tm.SetReloading(true)
 

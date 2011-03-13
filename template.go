@@ -20,27 +20,20 @@ type templateFileInfo struct {
 type Template struct {
 	m     *Manager
 	cache *template.Template
-	fi    *templateFileInfo // Used only for template files, nil for template strings.
+	fi    *templateFileInfo // Used only for template files
 }
 
-// Execute applies a parsed template to the specified data object, generating output to wr.
-// If the template is a template file and the template's template manager has reloading mode enabled, 
-// then this method will attempt to reparse the template file if its modified time has changed.
+// Execute applies a parsed template to the specified data object, 
+// generating output to wr. If the template is a template file and the 
+// template's template manager has reloading mode enabled, 
+// then this method will attempt to reparse the template file if its modified 
+// time has changed.
 // If any errors occur, err will be non-nil.
 func (t *Template) Execute(wr io.Writer, data interface{}) (err os.Error) {
 	if t.fi != nil && t.m.reloading {
-		filename := t.fi.filename
-		path := path.Join(t.m.baseDir, filename)
-		oldMtime := t.fi.mtime
-		curMtime := getMtime(path)
-
-		if curMtime > oldMtime {
-			// Template has changed.
-			// Reparse the template file.
-			t, err = t.m.addFile(filename, t.m.tFiles[filename].fi.mustParse)
-			if err != nil {
-				return err
-			}
+		err = t.Reload()
+		if err != nil {
+			return err
 		}
 	}
 
@@ -48,6 +41,32 @@ func (t *Template) Execute(wr io.Writer, data interface{}) (err os.Error) {
 	err = tt.Execute(wr, data)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// Reload rereads and reparses the template's associated template file
+// if its modified time has changed since initial loading.
+// Calling this method is unnecessary when reloading mode is enabled,
+// unless the file's modified time is erroneous.
+// If any errors occur, err will be non-nil.
+func (t *Template) Reload() (err os.Error) {
+	filename := t.fi.filename
+	path := path.Join(t.m.baseDir, filename)
+	oldMtime := t.fi.mtime
+	curMtime := getMtime(path)
+
+	if curMtime > oldMtime {
+		// Template has changed.
+		// Reparse the template file.
+		t.cache, err = t.m.Parsett(path, t.fi.mustParse)
+		if err != nil {
+			return err
+		}
+		
+		// Update modified time
+		t.fi.mtime = getMtime(path)
 	}
 
 	return nil

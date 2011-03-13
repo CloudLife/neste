@@ -1,11 +1,3 @@
-/*
-	Extended version of Go's template package for generating textual output from nested templates.
-
-	neste template engine makes it easier to generate output from multiple nested template files
-	by naming and managing all templates and also allowing generating output from them directly as strings.
-
-	neste also includes many useful built-in formatters.
-*/
 package neste
 
 import (
@@ -25,9 +17,11 @@ type Manager struct {
 	reloading bool
 }
 
-// Returns a new template manager with base directory baseDir for template files.
+// Returns a new template manager with base directory baseDir 
+// for template files.
 func New(baseDir string, fmap template.FormatterMap) *Manager {
-	// Add each built-in formatter unless there's a user given formatter with same name already.
+	// Add each built-in formatter unless there's 
+	// a user given formatter with same name already.
 	if fmap != nil {
 		for k, v := range builtins {
 			_, present := fmap[k]
@@ -47,7 +41,8 @@ func New(baseDir string, fmap template.FormatterMap) *Manager {
 		reloading: false}
 }
 
-// Add adds a given template string s to the template manager with the identifier id.
+// Add adds a given template string s to the template manager 
+// with the identifier id.
 // If any errors occur, returned error will be non-nil. 
 func (m *Manager) Add(s string, id string) (*Template, os.Error) {
 	return m.add(s, id, false)
@@ -112,14 +107,15 @@ func (m *Manager) RemoveFile(filename string) bool {
 }
 
 // SetReloading sets the template file reloading mode.
-// When reloading mode is enabled, calls to GetFile method will trigger reparsing of the given template file
-// if its modified time has changed.
+// When reloading mode is enabled, calls to GetFile method will trigger 
+// reparsing of the given template file if its modified time has changed.
 // Reloading is disabled (false) by default.
 func (m *Manager) SetReloading(reloading bool) {
 	m.reloading = reloading
 }
 
-// SetDelims sets the left and right delimiters for operations in the template for template parsing.
+// SetDelims sets the left and right delimiters for operations 
+// in the template for template parsing.
 func (m *Manager) SetDelims(left, right string) {
 	m.ldelim = left
 	m.rdelim = right
@@ -131,7 +127,8 @@ func (m *Manager) SetDelims(left, right string) {
 // Add adds a given template string to the template manager.
 // This method should not be called directly, but through Add or MustAdd.
 // If any errors occur, err will be non-nil. 
-func (m *Manager) add(s string, id string, mustParse bool) (t *Template, err os.Error) {
+func (m *Manager) add(s string, id string, mustParse bool) (t *Template,
+err os.Error) {
 	tt := template.New(m.fmap)
 	tt.SetDelims(m.ldelim, m.rdelim)
 
@@ -160,22 +157,15 @@ func (m *Manager) add(s string, id string, mustParse bool) (t *Template, err os.
 // AddFile adds a given template file to the template manager.
 // This method should not be called directly, but through AddFile, MustAddFile.
 // If any errors occur, err will be non-nil. 
-func (m *Manager) addFile(filename string, mustParse bool) (t *Template, err os.Error) {
-	tt := template.New(m.fmap)
-	tt.SetDelims(m.ldelim, m.rdelim)
+func (m *Manager) addFile(filename string, mustParse bool) (t *Template,
+err os.Error) {
+	var tt *template.Template
 
 	// Parse template file.
 	path := path.Join(m.baseDir, filename)
-	if mustParse {
-		err := tt.ParseFile(path)
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		err := tt.ParseFile(path)
-		if err != nil {
-			return nil, err
-		}
+	tt, err = m.Parsett(path, mustParse)
+	if err != nil {
+		return nil, err
 	}
 
 	t = &Template{
@@ -192,9 +182,24 @@ func (m *Manager) addFile(filename string, mustParse bool) (t *Template, err os.
 	return t, nil
 }
 
-// getMtime returns modified time of the given file.
-func getMtime(path string) int64 {
-	fi, _ := os.Lstat(path)
-	return fi.Mtime_ns
-}
+// Parsett returns a *template.Template for the given file.
+func (m *Manager) Parsett(path string, mustParse bool) (tt *template.Template,
+err os.Error) {
+	tt = template.New(m.fmap)
+	tt.SetDelims(m.ldelim, m.rdelim)
 
+	// Parse template file.
+	if mustParse {
+		err = tt.ParseFile(path)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		err = tt.ParseFile(path)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return tt, nil
+}
