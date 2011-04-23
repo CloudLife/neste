@@ -60,7 +60,7 @@ func (t *Template) Reload() (err os.Error) {
 	if curMtime > oldMtime {
 		// Template has changed.
 		// Reparse the template file.
-		t.cache, err = t.m.Parsett(path, t.fi.mustParse)
+		t.cache, err = t.m.parsett(path, t.fi.mustParse)
 		if err != nil {
 			return err
 		}
