@@ -163,7 +163,7 @@ err os.Error) {
 
 	// Parse template file.
 	path := path.Join(m.baseDir, filename)
-	tt, err = m.Parsett(path, mustParse)
+	tt, err = m.parsett(path, mustParse)
 	if err != nil {
 		return nil, err
 	}
@@ -182,8 +182,8 @@ err os.Error) {
 	return t, nil
 }
 
-// Parsett returns a *template.Template for the given file.
-func (m *Manager) Parsett(path string, mustParse bool) (tt *template.Template,
+// parsett returns a *template.Template for the given file.
+func (m *Manager) parsett(path string, mustParse bool) (tt *template.Template,
 err os.Error) {
 	tt = template.New(m.fmap)
 	tt.SetDelims(m.ldelim, m.rdelim)
