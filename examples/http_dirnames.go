@@ -98,15 +98,12 @@ func initTemplates() {
 	tm.SetDelims("{{", "}}")
 	tm.SetReloading(true)
 
-	_, err := tm.AddFile("base.html")
-	if err != nil {
-		panic(err)
-	}
-
-	_, err = tm.AddFile("index.html")
-	if err != nil {
-		panic(err)
-	}
+	// adds all files in the given dir (prefixed with basedir "templates") 
+	// and it's subdirs
+	tm.MustAddDir("")
+	// alternately, we could call each file individually:	
+	// tm.MustAddFile("base.html")
+	// tm.MustAddFile("index.html")
 }
 
 func main() {

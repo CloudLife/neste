@@ -4,6 +4,7 @@ import (
 	"template"
 	"os"
 	"path"
+	"path/filepath"
 )
 
 // Manager is a type that represents a template manager.
@@ -80,6 +81,13 @@ func (m *Manager) MustAdd(s string, id string) *Template {
 	return t
 }
 
+// MustAddDir calls MustAddFile for all files in the given directory and their 
+// subdirectories to the template manager.
+// Panic occurs if any template can't be parsed. 
+func (m *Manager) MustAddDir(dir string) {
+	filepath.Walk(path.Join(m.baseDir, dir), m, nil)
+}
+
 // MustAddFile is like AddFile, but panics, if template can't be parsed. 
 func (m *Manager) MustAddFile(filename string) *Template {
 	t, _ := m.addFile(filename, true)
@@ -125,7 +133,6 @@ func (m *Manager) SetDelims(left, right string) {
 // Unexported methods
 
 // Add adds a given template string to the template manager.
-// This method should not be called directly, but through Add or MustAdd.
 // If any errors occur, err will be non-nil. 
 func (m *Manager) add(s string, id string, mustParse bool) (t *Template,
 err os.Error) {
@@ -155,7 +162,6 @@ err os.Error) {
 }
 
 // AddFile adds a given template file to the template manager.
-// This method should not be called directly, but through AddFile, MustAddFile.
 // If any errors occur, err will be non-nil. 
 func (m *Manager) addFile(filename string, mustParse bool) (t *Template,
 err os.Error) {
@@ -203,3 +209,20 @@ err os.Error) {
 
 	return tt, nil
 }
+
+func (m *Manager) VisitDir(path_ string, f *os.FileInfo) bool {
+	return true
+}
+
+
+func (m *Manager) VisitFile(path_ string, f *os.FileInfo) {
+	// remove base dir from the given path
+	if path_[len(m.baseDir)] == filepath.Separator {
+		path_ = path_[len(m.baseDir)+1:]
+	} else {
+		path_ = path_[len(m.baseDir):]
+	}
+
+	m.MustAddFile(path_)
+}
+
