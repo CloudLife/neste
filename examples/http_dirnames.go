@@ -99,7 +99,7 @@ func initTemplates() {
 	tm.SetReloading(true)
 
 	// adds all files in the given dir (prefixed with basedir "templates") 
-	// and it's subdirs
+	// and its subdirs
 	tm.MustAddDir("")
 	// alternately, we could call each file individually:	
 	// tm.MustAddFile("base.html")
