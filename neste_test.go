@@ -120,6 +120,7 @@ func (s *S) TestFormatters(c *C) {
 	tstr :=
 `
 {unesc1 unesc2 unesc3|html}
+{unesc1 unesc2 unesc3|e}
 {unslashed|addSlashes}
 {uncapped|capFirst}
 {uncapped2|capFirst}
@@ -134,6 +135,7 @@ func (s *S) TestFormatters(c *C) {
 
 	expected :=
 `
+&lt;hack&gt;\&amp;hack\&lt;/hack&gt;
 &lt;hack&gt;\&amp;hack\&lt;/hack&gt;
 \"I'm using neste\"
 Neste
