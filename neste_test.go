@@ -5,7 +5,6 @@ import (
 	"testing"
 	"bytes"
 	"os"
-	"template"
 	"io/ioutil"
 	"path"
 	"time"
@@ -141,7 +140,7 @@ Neste
 Ǿxy
 `
 
-	tm := New(baseDir, template.FormatterMap{})
+	tm := New(baseDir, nil)
 	t := tm.MustAdd(tstr, "testFormatters")
 
 	output, err := t.Render(data)

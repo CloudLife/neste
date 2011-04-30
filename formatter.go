@@ -11,7 +11,7 @@ import (
 	"unicode"
 )
 
-var builtins = template.FormatterMap{
+var builtinFormatters = template.FormatterMap{
 	"e":          template.HTMLFormatter, // Just a shorthand for the "html" escaping formatter
 	"addSlashes": AddSlashesFormatter,
 	"capFirst":   CapFirstFormatter}
