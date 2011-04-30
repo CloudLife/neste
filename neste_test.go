@@ -5,7 +5,6 @@ import (
 	"testing"
 	"bytes"
 	"os"
-	"template"
 	"io/ioutil"
 	"path"
 	"time"
@@ -121,6 +120,7 @@ func (s *S) TestFormatters(c *C) {
 	tstr :=
 `
 {unesc1 unesc2 unesc3|html}
+{unesc1 unesc2 unesc3|e}
 {unslashed|addSlashes}
 {uncapped|capFirst}
 {uncapped2|capFirst}
@@ -136,12 +136,13 @@ func (s *S) TestFormatters(c *C) {
 	expected :=
 `
 &lt;hack&gt;\&amp;hack\&lt;/hack&gt;
+&lt;hack&gt;\&amp;hack\&lt;/hack&gt;
 \"I'm using neste\"
 Neste
 Ǿxy
 `
 
-	tm := New(baseDir, template.FormatterMap{})
+	tm := New(baseDir, nil)
 	t := tm.MustAdd(tstr, "testFormatters")
 
 	output, err := t.Render(data)

@@ -24,12 +24,14 @@ func New(baseDir string, fmap template.FormatterMap) *Manager {
 	// Add each built-in formatter unless there's 
 	// a user given formatter with same name already.
 	if fmap != nil {
-		for k, v := range builtins {
+		for k, v := range builtinFormatters {
 			_, present := fmap[k]
 			if !present {
 				fmap[k] = v
 			}
 		}
+	} else {
+		fmap = builtinFormatters
 	}
 
 	return &Manager{
