@@ -150,7 +150,7 @@ err os.Error) {
 	} else {
 		err := tt.Parse(s)
 		if err != nil {
-			return nil, err
+			return
 		}
 	}
 
@@ -160,7 +160,7 @@ err os.Error) {
 
 	// Add template to the manager.
 	m.tStrings[id] = t
-	return t, nil
+	return
 }
 
 // AddFile adds a given template file to the template manager.
@@ -173,7 +173,7 @@ err os.Error) {
 	path := path.Join(m.baseDir, filename)
 	tt, err = m.parsett(path, mustParse)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	t = &Template{
@@ -187,7 +187,7 @@ err os.Error) {
 	// Add template to the manager.
 	m.tFiles[filename] = t
 
-	return t, nil
+	return
 }
 
 // parsett returns a *template.Template for the given file.
@@ -205,11 +205,11 @@ err os.Error) {
 	} else {
 		err = tt.ParseFile(path)
 		if err != nil {
-			return nil, err
+			return
 		}
 	}
 
-	return tt, nil
+	return
 }
 
 func (m *Manager) VisitDir(path_ string, f *os.FileInfo) bool {

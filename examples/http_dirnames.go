@@ -38,7 +38,7 @@ type dIndex struct {
 // Returns up to count file names residing in a given directory.
 // Returned file names will not include hidden files, if hidden is false.
 func getDirnames(dir string, count int, hidden bool) (dirnames []string, err os.Error) {
-	dirFile, err := os.Open(dir, os.O_RDONLY, 0444)
+	dirFile, err := os.Open(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -115,4 +115,3 @@ func main() {
 	}
 
 }
-

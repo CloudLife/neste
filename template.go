@@ -33,17 +33,17 @@ func (t *Template) Execute(wr io.Writer, data interface{}) (err os.Error) {
 	if t.fi != nil && t.m.reloading {
 		err = t.Reload()
 		if err != nil {
-			return err
+			return
 		}
 	}
 
 	tt := t.cache
 	err = tt.Execute(wr, data)
 	if err != nil {
-		return err
+		return
 	}
 
-	return nil
+	return
 }
 
 // Reload rereads and reparses the template's associated template file
@@ -69,7 +69,7 @@ func (t *Template) Reload() (err os.Error) {
 		t.fi.mtime = getMtime(path)
 	}
 
-	return nil
+	return
 }
 
 // Render applies a parsed template to the specified data object and 
@@ -79,10 +79,10 @@ func (t *Template) Render(data interface{}) (s string, err os.Error) {
 	buf := new(bytes.Buffer)
 	err = t.Execute(buf, data)
 	if err != nil {
-		return "", err
+		return
 	}
 
 	s = string(buf.Bytes())
-	return s, nil
+	return
 }
 
